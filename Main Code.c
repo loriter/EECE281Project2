@@ -156,6 +156,8 @@ int main( void )
 		}    
 		//ProperAnglePosition(AngleToSignal); //move vehicle to proper angle
         
+        
+        /* **May have to implement different functionality for tasks**
         //Task Move Farther
 		if (P2_3 == 0)
 		{
@@ -179,6 +181,7 @@ int main( void )
 		if (P2_6 == 0)
 		{
 		}
+		*/
 	}
 
 }
