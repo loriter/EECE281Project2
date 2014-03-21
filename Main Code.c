@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-//#include <dos.h>
 #include <at89lp51rd2.h>
 
 // Left Wheel: Forward = 3.2 ON 3.3 Off Backward = 3.2 Off 3.3 ON
@@ -13,39 +12,40 @@
 #define FREQ 100L
 #define TIMER0_RELOAD_VALUE (65536L-(CLK/(12L*FREQ)))
 
-//#define RequiredDistance 2.0 // Sets the distance to be 2 meters ( for now )
 #define MOVEMENTSPEED 10 // 10 cm/s
 #define TURNSPEED	1	 // Angle / s
-double RequiredDistance = 1; // Sets the distance to be 2 meters ( for now )
-double RequiredAngle = 90;
+double RequiredDistance = 1; // Sets the default distance to be roughly 2 meters
+//This can be set to a different distance manually
+double RequiredAngle = 90; //The angle the robot needs to be
 
-double x=0,y=0;
+//double x=0,y=0;
 
-void startupTest(void); //test the circuit before beginning
+void startupTest(void); //Tests that the motors and circuit are working properly
 
 double DetermineDistanceToSignal( void ); // FINISH FINDING IF WE NEED PARAMETERS
 
 double DetermineAngleToSignal( void ); // FINISH FINDING IF WE NEED PARAMETERS
+//**TODO** complete this function - might just be phase shift
 
-void MoveForward(void); // Turns on wheels
+void MoveForward(void); // Turns on wheels forward
 
 void MoveBackward ( void );
 
-void MoveDistance( double DistanceToSignal ); // Moves a certain distance in the forward direction
+void MoveDistance( double DistanceToSignal ); // Moves designated distance forward
 
-void StopMoving( void );     // Stops the tether from moving
+void StopMoving( void );     // Stops the motors from moving
 
-void TurnRight( void );      // Only turns on LEFT wheel to turn right
+void TurnRight( void );      // Moves left wheel forward and right wheel backwards to turn right
 
-void TurnLeft( void );       // Only turns on RIGHT wheel to turn left
+void TurnLeft( void );       // Moves right wheel forward and left wheel backwards to turn left 
 
 void TurnAway( double AngleToSignal );     // Takes angle to signal and turns until it is facing away
 
 void TurnTo( double AngleToSignal);      // Takes angle to signal and turns until it is facing away
 
-void increaseDistance( void );
+void increaseDistance( void ); //Not used
 
-void decreaseDistance( void );
+void decreaseDistance( void ); //Not used
  
 void ProperAnglePosition (double AngleToSignal);	//move the car to the proper angle
 
@@ -55,8 +55,12 @@ double CalculateAngleMoveTime(double DifferenceInAngle);
 
 void SPIWrite (unsigned char value);
 unsigned int GetADC (unsigned char channel);
+
+//Delay function, may have to rewrite
 void delay (void);
 void testDelay(void);
+
+// Need to replace these with code from lab 5
 double GetFreq (void);
 double TestFreq (void);
 double GetPhase (void);
@@ -64,10 +68,10 @@ unsigned int GetPeriod (void);
 
 double PhaseDifference(void); //  This one is still buggy and doesnt full work.
 double Period(void); //  Returns the period in us.
-double ReferenceVoltage(void);//Gets the peak voltage for the reference signal.
-							  //We might have to change some channels for the getADC part.
+
+double ReferenceVoltage(void);//**TODO** Not correct, need to replace this.
 							  //We can use these functions to help us get the distance.
-double SignalVoltage(void);   //Same as above function except for the signal voltage. 
+double SignalVoltage(void);  
 
 unsigned char _c51_external_startup(void)
 {
@@ -123,7 +127,7 @@ int main( void )
 			StopMoving();
 			//AngleToSignal = DetermineAngleToSignal();//end of while loop to keep or break the conditions
 		}
-                          
+        //If the car isn't parallel with the transmitter, it turns to adjust itself till it's parallel                  
 		if(ReferenceVoltage() < SignalVoltage() )
 		{
 			while(((SignalVoltage() - ReferenceVoltage()) > 0.2) )
@@ -156,6 +160,9 @@ int main( void )
 		}    
 		//ProperAnglePosition(AngleToSignal); //move vehicle to proper angle
         
+        
+        //***TODO**** Tasks to be done.
+        // **IDEA** Change transmitting frequency briefly as a command
         
         /* **May have to implement different functionality for tasks**
         //Task Move Farther
@@ -210,6 +217,8 @@ void MoveForward( void )
 	P3_4 = 0;
 	P3_5 = 1;
 
+
+	//Unknown commands. Can be used for extra features.
 	P1_1 = 1;	// Front On
 	P2_0 = 0;	// Left off
 	P1_0 = 0;	// Back off
@@ -331,7 +340,7 @@ double CalculateDistanceMoveTime(double DistanceToSignal)
 	
 double CalculateAngleMoveTime(double DifferenceInAngle)
 {
-	//car is facing the tramsitter
+	//Determines the time for the car to turn to face the transmitter
 	return (DifferenceInAngle/TURNSPEED*1000); //assumming the time is in Seconds
 }
 	
@@ -345,7 +354,8 @@ double DetermineDistanceToSignal( void )
 
 double DetermineAngleToSignal( void )
 {
-	return 90; //For testing, just tells it that its always in the right angle.
+	//return 90; //For testing, just tells it that its always in the right angle.
+	return PhaseDifference();//**TODO** May not work, may require a fix.
 }
 	
 double GetPhase (void)
