@@ -3,8 +3,10 @@
 #include <stdlib.h>
 #include <at89lp51rd2.h>
 
-// Left Wheel: Forward = 3.2 ON 3.3 Off Backward = 3.2 Off 3.3 ON
-// Right Wheel Forward = 3.4 ON 3.5 OFF Backward = 3.4 Off 3.5 ON
+#define LWP P3_2
+#define LWN P3_3
+#define RWP P3_4
+#define RWN p3_5
 
 #define CLK 22118400L
 #define BAUD 115200L
@@ -14,64 +16,71 @@
 
 #define MOVEMENTSPEED 10 // 10 cm/s
 #define TURNSPEED	1	 // Angle / s
-double RequiredDistance = 1; // Sets the default distance to be roughly 2 meters
+
+double requiredDistance = 1; // Sets the default distance to be roughly 2 meters
 //This can be set to a different distance manually
-double RequiredAngle = 90; //The angle the robot needs to be
+double requiredAngle = 90; //The angle the robot needs to be
 
 //double x=0,y=0;
 
 void startupTest(void); //Tests that the motors and circuit are working properly
 
-double DetermineDistanceToSignal( void ); // FINISH FINDING IF WE NEED PARAMETERS
+unsigned char recieveCommand( int min );
 
-double DetermineAngleToSignal( void ); // FINISH FINDING IF WE NEED PARAMETERS
+void waitOneAndHalfBitTime( void );
+
+void waitBitTime( void );
+
+double determineDistanceToSignal( void ); // FINISH FINDING IF WE NEED PARAMETERS
+
+double determineAngleToSignal( void ); // FINISH FINDING IF WE NEED PARAMETERS
 //**TODO** complete this function - might just be phase shift
 
-void MoveForward(void); // Turns on wheels forward
+void moveForward(void); // Turns on wheels forward
 
-void MoveBackward ( void );
+void moveBackward ( void );
 
-void MoveDistance( double DistanceToSignal ); // Moves designated distance forward
+void moveDistance( double distanceToSignal ); // Moves designated distance forward
 
-void StopMoving( void );     // Stops the motors from moving
+void stopMoving( void );     // Stops the motors from moving
 
-void TurnRight( void );      // Moves left wheel forward and right wheel backwards to turn right
+void turnRight( void );      // Moves left wheel forward and right wheel backwards to turn right
 
-void TurnLeft( void );       // Moves right wheel forward and left wheel backwards to turn left 
+void turnLeft( void );       // Moves right wheel forward and left wheel backwards to turn left 
 
-void TurnAway( double AngleToSignal );     // Takes angle to signal and turns until it is facing away
+void turnAway( double angleToSignal );     // Takes angle to signal and turns until it is facing away
 
-void TurnTo( double AngleToSignal);      // Takes angle to signal and turns until it is facing away
+void turnTo( double angleToSignal);      // Takes angle to signal and turns until it is facing away
 
 void increaseDistance( void ); //Not used
 
 void decreaseDistance( void ); //Not used
  
-void ProperAnglePosition (double AngleToSignal);	//move the car to the proper angle
+void properAnglePosition (double angleToSignal);	//move the car to the proper angle
 
-double CalculateDistanceMoveTime(double DistanceToSignal);
-double CalculateAngleMoveTime(double DifferenceInAngle);
+double calculateDistanceMoveTime(double distanceToSignal);
+double calculateAngleMoveTime(double differenceInAngle);
 //Some functions that will help in finding the Distance as well as the Angle
 
-void SPIWrite (unsigned char value);
-unsigned int GetADC (unsigned char channel);
+void spiWrite (unsigned char value);
+unsigned int getADC (unsigned char channel);
 
 //Delay function, may have to rewrite
 void delay (void);
 void testDelay(void);
 
 // Need to replace these with code from lab 5
-double GetFreq (void);
-double TestFreq (void);
-double GetPhase (void);
-unsigned int GetPeriod (void);
+double getFreq (void);
+double testFreq (void);
+double getPhase (void);
+unsigned int getPeriod (void);
 
-double PhaseDifference(void); //  This one is still buggy and doesnt full work.
-double Period(void); //  Returns the period in us.
+double phaseDifference(void); //  This one is still buggy and doesnt full work.
+double period(void); //  Returns the period in us.
 
-double ReferenceVoltage(void);//**TODO** Not correct, need to replace this.
+double referenceVoltage(void);//**TODO** Not correct, need to replace this.
 							  //We can use these functions to help us get the distance.
-double SignalVoltage(void);  
+double signalVoltage(void);  
 
 unsigned char _c51_external_startup(void)
 {
@@ -97,8 +106,8 @@ unsigned char _c51_external_startup(void)
 int main( void )
 {  
      
-	double DistanceToSignal,     // Determines the distance the tether is from the signal
-			AngleToSignal;        // Determines what angle the signal is in relation to the tether's right side
+	double distanceToSignal,     // Determines the distance the tether is from the signal
+			angleToSignal;        // Determines what angle the signal is in relation to the tether's right side
      
 	startupTest(); //test the circuit before beginning
 
@@ -108,54 +117,54 @@ int main( void )
 	while( 1 )  // Keeps the program running
 	{
 		// Determine distance and angle function
-		AngleToSignal = DetermineAngleToSignal();
-		DistanceToSignal = DetermineDistanceToSignal();
+		angleToSignal = determineAngleToSignal();
+		distanceToSignal = determineDistanceToSignal();
                
-		while( (abs(SignalVoltage()-ReferenceVoltage()) < 0.2)&&(SignalVoltage() > 0.05) )
+		while( (abs(signalVoltage()-referenceVoltage()) < 0.2)&&(signalVoltage() > 0.05) )
 		{
-			StopMoving();
-			DistanceToSignal = DetermineDistanceToSignal();
+			stopMoving();
+			distanceToSignal = determineDistanceToSignal();
                     	
 			//IMPORTANT: This is assuming that when you change the angle of the car the signal will also change the distance factor
-			while( ( DistanceToSignal > (RequiredDistance +0.2 )) || (  DistanceToSignal < (RequiredDistance-0.2) ) )
+			while( ( distanceToSignal > (requiredDistance +0.2 )) || (  distanceToSignal < (requiredDistance-0.2) ) )
 			{
-				MoveDistance( DistanceToSignal );     // Moves a distance towards the tether distance
+				moveDistance( distanceToSignal );     // Moves a distance towards the tether distance
 				//delay();
-				DistanceToSignal = (ReferenceVoltage() + SignalVoltage())/2;
+				distanceToSignal = (referenceVoltage() + signalVoltage())/2;
 			}
                           
-			StopMoving();
+			stopMoving();
 			//AngleToSignal = DetermineAngleToSignal();//end of while loop to keep or break the conditions
 		}
         //If the car isn't parallel with the transmitter, it turns to adjust itself till it's parallel                  
-		if(ReferenceVoltage() < SignalVoltage() )
+		if(referenceVoltage() < signalVoltage() )
 		{
-			while(((SignalVoltage() - ReferenceVoltage()) > 0.2) )
+			while(((signalVoltage() - referenceVoltage()) > 0.2) )
 			{
-				TurnLeft();
+				turnLeft();
 			}
               		
-			StopMoving();
+			stopMoving();
 		}
 		
-		else if (SignalVoltage() < ReferenceVoltage())
+		else if (signalVoltage() < referenceVoltage())
 		{
-			while(( (ReferenceVoltage()-SignalVoltage()) > 0.2))
+			while(( (referenceVoltage()-signalVoltage()) > 0.2))
 			{
-				TurnRight();
+				turnRight();
 			}
               		
-			StopMoving();
+			stopMoving();
 		}          
                 
-		else if(((abs(SignalVoltage() - ReferenceVoltage())) < 0.2) && (SignalVoltage() < 0.05 ))
+		else if(((abs(signalVoltage() - referenceVoltage())) < 0.2) && (signalVoltage() < 0.05 ))
 		{
-			while((SignalVoltage() < 0.1) && (ReferenceVoltage() < 0.1))
+			while((signalVoltage() < 0.1) && (referenceVoltage() < 0.1))
 			{
-				TurnRight();   
+				turnRight();   
 			}
                 	
-			StopMoving();
+			stopMoving();
                 
 		}    
 		//ProperAnglePosition(AngleToSignal); //move vehicle to proper angle
@@ -196,21 +205,21 @@ int main( void )
 void startupTest(void)
 {
 	
-	MoveForward();
+	moveForward();
 	testDelay();
-	StopMoving();
-    MoveBackward();
+	stopMoving();
+    moveBackward();
 	testDelay();
-	StopMoving();
-    TurnRight();
+	stopMoving();
+    turnRight();
 	testDelay();
-	StopMoving();
-    TurnLeft(); 
+	stopMoving();
+    turnLeft(); 
 	testDelay();
-	StopMoving();
+	stopMoving();
 }
 
-void MoveForward( void )
+void moveForward( void )
 {
 	P3_2 = 1;
 	P3_3 = 0;
@@ -225,7 +234,7 @@ void MoveForward( void )
 	P3_7 = 0;	// Right off
 }
 
-void MoveBackward( void )
+void moveBackward( void )
 {
 	P3_2 = 0;
 	P3_3 = 1;
@@ -238,7 +247,7 @@ void MoveBackward( void )
 	P1_0 = 1;	// Back on
 }
 
-void StopMoving( void )
+void stopMoving( void )
 {
 	P3_2 = 0;
 	P3_3 = 0;
@@ -251,7 +260,7 @@ void StopMoving( void )
 	P3_7 = 0;	// Right off
 }
 
-void TurnRight( void )
+void turnRight( void )
 {
 	P3_2 = 1;
 	P3_3 = 0;
@@ -264,7 +273,7 @@ void TurnRight( void )
 	P1_0 = 0;	// back off
 }
 
-void TurnLeft( void )
+void turnLeft( void )
 {
 	P3_2 = 0;
 	P3_3 = 1;
@@ -277,88 +286,117 @@ void TurnLeft( void )
 	P3_7 = 0;	// Right off
 } 
 
-void MoveDistance( double DistanceToSignal )
+unsigned char recieveCommand( int min )
+{
+	unsigned char i, val;
+	int v;
+	
+	val = 0;
+	waitOneAndHalfBitTime();
+	for(i = 0; i < 3; i++)
+	{
+		v = SignalVoltage(); //May need to change to find peak voltage
+		val |= (v>min)?(0x01<<i):0x00;
+		waitBitTime();
+	}
+	
+	waitOneAndHalfBitTime();
+	
+	return val;
+}
+
+void waitOneAndHalfBitTime( void )
+{
+	//** TODO ** Implement same way as wait_bit_time in transmitter
+}
+
+void waitBitTime ( void )
+{
+	//** TODO ** Implement as above
+}
+
+void moveDistance( double distanceToSignal )
 {
           
-	if( DistanceToSignal > RequiredDistance )
+	if( distanceToSignal > requiredDistance )
 	{
-		MoveForward();// Move towards the signal
+		moveForward();// Move towards the signal
 		//delay( MovementTimeRequired);//this might have to be inside the moving functions
-		//StopMoving();
+		//stopMoving();
 	}
-	else if( DistanceToSignal < RequiredDistance )
+	else if( distanceToSignal < requiredDistance )
 	{
-		MoveBackward();// Move away from signal
+		moveBackward();// Move away from signal
 		//delay( MovementTimeRequired);//this might have to be inside the moving functions
-		//StopMoving();
+		//stopMoving();
 	}
 	                  
 }
 
-void TurnTo( double AngleToSignal )
+void turnTo( double angleToSignal )
 {
-	if( (AngleToSignal > 90) && (AngleToSignal < 180 ))
+	if( (angleToSignal > 90) && (angleToSignal < 180 ))
 	{
-		TurnRight();
-		StopMoving();
+		turnRight();
+		stopMoving();
 	}
-	else if ( ((AngleToSignal < 90)&&(AngleToSignal > 0)) || (AngleToSignal > 180 ))
+	else if ( ((angleToSignal < 90)&&(angleToSignal > 0)) || (angleToSignal > 180 ))
 	{
-		TurnLeft();
-		StopMoving();
+		turnLeft();
+		stopMoving();
 	}
 }   
 
           
-void ProperAnglePosition( double AngleToSignal)
+void properAnglePosition( double angleToSignal)
 {
-	double DifferenceInAngle, MovementTimeRequired;
+	double differenceInAngle, movementTimeRequired;
           
 	//following if statement for the car to be facing the tramsitter
-	if(AngleToSignal > 90)
+	if(angleToSignal > 90)
 	{
 		//turn right
-		DifferenceInAngle = (AngleToSignal - RequiredAngle);
+		differenceInAngle = (angleToSignal - requiredAngle);
 	}
-	else //**MaybeRequired**if (AngleToSignal < 90)
+	else //**MaybeRequired**if (angleToSignal < 90)
 	{
 		//turn left
-		DifferenceInAngle = (RequiredAngle - AngleToSignal);
+		differenceInAngle = (requiredAngle - angleToSignal);
 	}
 
-	MovementTimeRequired = CalculateAngleMoveTime(DifferenceInAngle);
+	movementTimeRequired = calculateAngleMoveTime(differenceInAngle);
 
-	TurnTo(AngleToSignal);// left and right may need to be swapped
+	turnTo(angleToSignal);// left and right may need to be swapped
                 		              
 }   
 	
-double CalculateDistanceMoveTime(double DistanceToSignal)
+double calculateDistanceMoveTime(double distanceToSignal)
 {
-	return (abs(DistanceToSignal - RequiredDistance) / MOVEMENTSPEED);
+	return (abs(distanceToSignal - requiredDistance) / MOVEMENTSPEED);
 	//some shit that looks at the amplitude and phases and periods and shit
 }
 	
-double CalculateAngleMoveTime(double DifferenceInAngle)
+double calculateAngleMoveTime(double differenceInAngle)
 {
 	//Determines the time for the car to turn to face the transmitter
-	return (DifferenceInAngle/TURNSPEED*1000); //assumming the time is in Seconds
+	return (differenceInAngle/TURNSPEED*1000); //assumming the time is in Seconds
 }
 	
 
-double DetermineDistanceToSignal( void )
+double determineDistanceToSignal( void )
 {
 
-//	return (SignalVoltage() + ReferenceVoltage())/2;
-	return SignalVoltage();
+//	return (signalVoltage() + referenceVoltage())/2;
+	return signalVoltage();
 }
 
-double DetermineAngleToSignal( void )
+double determineAngleToSignal( void )
 {
 	//return 90; //For testing, just tells it that its always in the right angle.
-	return PhaseDifference();//**TODO** May not work, may require a fix.
+	return phaseDifference();//**TODO** May not work, may require a fix.
 }
 	
-double GetPhase (void)
+double getPhase (void)
 {
 	double phase;
 		
@@ -376,7 +414,7 @@ double GetPhase (void)
 	return phase;
 }
 
-unsigned int GetPeriod (void)
+unsigned int getPeriod (void)
 {
 	unsigned int period;
 		
@@ -394,7 +432,7 @@ unsigned int GetPeriod (void)
 	return period;
 }
 
-double GetFreq (void)
+double getFreq (void)
 {
 	unsigned int period;
 		
@@ -423,14 +461,14 @@ void testDelay(void){
     for (j=0; j<30000; j++); 
 }
 
-void SPIWrite(unsigned char value)
+void spiWrite(unsigned char value)
 {
 	SPSTA&=(~SPIF); // Clear the SPIF flag in SPSTA
 	SPDAT=value;
 	while((SPSTA & SPIF)!=SPIF); //Wait for transmission to end
 }
 
-unsigned int GetADC(unsigned char channel)
+unsigned int getADC(unsigned char channel)
 {
 	unsigned int adc;
 
@@ -440,11 +478,11 @@ unsigned int GetADC(unsigned char channel)
 	SPCON|=SPEN; // Enable SPI
 	
 	P1_4=0; // Activate the MCP3004 ADC.
-	SPIWrite(channel|0x18);	// Send start bit, single/diff* bit, D2, D1, and D0 bits.
+	spiWrite(channel|0x18);	// Send start bit, single/diff* bit, D2, D1, and D0 bits.
 	for(adc=0; adc<10; adc++); // Wait for S/H to setup
-	SPIWrite(0x55); // Read bits 9 down to 4
+	spiWrite(0x55); // Read bits 9 down to 4
 	adc=((SPDAT&0x3f)*0x100);
-	SPIWrite(0x55);// Read bits 3 down to 0
+	spiWrite(0x55);// Read bits 3 down to 0
 	P1_4=1; // Deactivate the MCP3004 ADC.
 	adc+=(SPDAT&0xf0); // SPDR contains the low part of the result. 
 	adc>>=4;
@@ -454,22 +492,22 @@ unsigned int GetADC(unsigned char channel)
 	return adc;
 }
 
-double PhaseDifference(void)
+double phaseDifference(void)
 { 
-	return (GetPhase()*360.0/GetPeriod());
+	return (getPhase()*360.0/getPeriod());
 }
 
-double Period(void)
+double period(void)
 { 	
-	return ((GetPeriod()*271.e-3));
+	return ((getPeriod()*271.e-3));
 }
 
-double ReferenceVoltage(void)
+double referenceVoltage(void)
 {
-	return ((5.*GetADC(0))/1023.);
+	return ((5.*getADC(0))/1023.);
 }
 
-double SignalVoltage(void)
+double signalVoltage(void)
 {
-	return ((5.*GetADC(1))/1023.);
+	return ((5.*getADC(1))/1023.);
 }
