@@ -90,7 +90,7 @@ void sendCommand(unsigned char val)
 	waitBitTime();
 }
 
-//JESUS CODE
+//JESUS CODE - Jesus wrote the following code
 //Creates same thing as above, just different code.
 // Interrupt 1 is for timer 0.  This function is executed every time
 // timer 0 overflows: 100 us.
@@ -113,12 +113,12 @@ void sendCommand(unsigned char val)
 void main (void)
 {
 	//unsigned int f=15000, reload;
-	printf("\nFrequency test program\n");
 	pwm1 = 50;
 	pwm2 = 50;
 	while(1)
 	{	
-		//printf( "\rf(%5d)=       \b\b\b\b\b\b\b", f );
+		//This changes the frequency of the wave being sent.
+		//Need to add functions to detect a button press and change frequency briefly.
 		//reload=65536L-(CLK/(12L*f));
 		//RH0=reload/0x100;
 		//RL0=reload%0x100;
