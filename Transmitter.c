@@ -6,12 +6,8 @@
 #define BAUD 115200L
 #define BRG_VAL (0x100-(CLK/(32L*BAUD)))
 
-#define FREQ 10000L
+#define FREQ 33800L
 #define TIMER0_RELOAD_VALUE (65536L-(CLK/(12L*FREQ)))
-
-volatile unsigned char pwmc ount;
-volatile unsigned char pwm1;
-volatile unsigned char pwm2;
 
 unsigned char _c51_external_startup(void)
 {
@@ -42,18 +38,8 @@ unsigned char _c51_external_startup(void)
 	TR0=1; // Start timer 0 (bit 4 in TCON)
 	ET0=1; // Enable timer 0 interrupt
 	EA=1;  // Enable global interrupts
-	
-	pwmcount=0;
     
     return 0;
-}
-
-//gerenates 2 PWM waves at 50, with a phase difference of 90
-void pwmcounter (void) interrupt 1
-{
-	if(++pwmcount>99) pwmcount=0;
-	P2_0 = (pwm1>pwmcount)?1:0;
-	P2_1 = (pwm2>100-pwmcount)?1:0;
 }
 
 //** TODO ** Implement sending commands and waitbittime
@@ -67,25 +53,24 @@ void sendCommand(unsigned char val)
 	unsigned char i;
 	
 	//Turn off signal
-	pwm1 = 0;
-	pwm2 = 0;
+	TR0=0;
 	waitBitTime();
-	for(i = 0; i < 3; i++)
+	for(i = 0; i < 7; i++)
 	{
-		if(val&(0x01<<j))
+		if(val&(0x01<<i))
 		{
-			pwm1 = 50;
-			pwm2 = 50;
+			//Turn on signal
+			TR0=1;
 		}
 		else
 		{
-			pwm1 = 0;
-			pwm2 = 0;
+			//Turn off signal
+			TR0=0;
 		}
 		waitBitTime();
 	}
-	pwm1 = 50;
-	pwm2 = 50;
+	//Turn on signal
+	TR0=1;
 	waitBitTime();
 	waitBitTime();
 }
@@ -94,7 +79,7 @@ void sendCommand(unsigned char val)
 //Creates same thing as above, just different code.
 // Interrupt 1 is for timer 0.  This function is executed every time
 // timer 0 overflows: 100 us.
-/*void wave_freq (void) interrupt 1
+void wave_freq (void) interrupt 1
 {
 	if(P2_0==0)
 	{
@@ -106,15 +91,13 @@ void sendCommand(unsigned char val)
 	 P2_1=1;
 	 P2_0=0;
 	}
-}*/
+}
 
 
 
 void main (void)
 {
 	//unsigned int f=15000, reload;
-	pwm1 = 50;
-	pwm2 = 50;
 	while(1)
 	{	
 		//This changes the frequency of the wave being sent.
