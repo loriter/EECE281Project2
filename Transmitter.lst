@@ -1,0 +1,562 @@
+0000              1   ;--------------------------------------------------------
+0000              2   ; File Created by C51
+0000              3   ; Version 1.0.0 #1034 (Dec 12 2012) (MSVC)
+0000              4   ; This file was generated Thu Mar 27 14:26:06 2014
+0000              5   ;--------------------------------------------------------
+                  5   $name Transmitter
+                  6   $optc51 --model-small
+0000              8            R_DSEG    segment data
+0000              9            R_CSEG    segment code
+0000             10            R_BSEG    segment bit
+0000             11            R_XSEG    segment xdata
+0000             12            R_PSEG    segment xdata
+0000             13            R_ISEG    segment idata
+0000             14            R_OSEG    segment data overlay
+0000             15            BIT_BANK  segment data overlay
+0000             16            R_HOME    segment code
+0000             17            R_GSINIT  segment code
+0000             18            R_IXSEG   segment xdata
+0000             19            R_CONST   segment code
+0000             20            R_XINIT   segment code
+0000             21            R_DINIT   segment code
+0000             22   
+0000             23   ;--------------------------------------------------------
+0000             24   ; Public variables in this module
+0000             25   ;--------------------------------------------------------
+0000             26            public _main
+0000             27            public _wave_freq
+0000             28            public _sendCommand
+0000             29            public _waitBitTime
+0000             30            public __c51_external_startup
+0000             31   ;--------------------------------------------------------
+0000             32   ; Special Function Registers
+0000             33   ;--------------------------------------------------------
+0000             34   _ACC            DATA 0xe0
+0000             35   _B              DATA 0xf0
+0000             36   _PSW            DATA 0xd0
+0000             37   _SP             DATA 0x81
+0000             38   _SPX            DATA 0xef
+0000             39   _DPL            DATA 0x82
+0000             40   _DPH            DATA 0x83
+0000             41   _DPLB           DATA 0xd4
+0000             42   _DPHB           DATA 0xd5
+0000             43   _PAGE           DATA 0xf6
+0000             44   _AX             DATA 0xe1
+0000             45   _BX             DATA 0xf7
+0000             46   _DSPR           DATA 0xe2
+0000             47   _FIRD           DATA 0xe3
+0000             48   _MACL           DATA 0xe4
+0000             49   _MACH           DATA 0xe5
+0000             50   _PCON           DATA 0x87
+0000             51   _AUXR           DATA 0x8e
+0000             52   _AUXR1          DATA 0xa2
+0000             53   _DPCF           DATA 0xa1
+0000             54   _CKRL           DATA 0x97
+0000             55   _CKCKON0        DATA 0x8f
+0000             56   _CKCKON1        DATA 0xaf
+0000             57   _CKSEL          DATA 0x85
+0000             58   _CLKREG         DATA 0xae
+0000             59   _OSCCON         DATA 0x85
+0000             60   _IE             DATA 0xa8
+0000             61   _IEN0           DATA 0xa8
+0000             62   _IEN1           DATA 0xb1
+0000             63   _IPH0           DATA 0xb7
+0000             64   _IP             DATA 0xb8
+0000             65   _IPL0           DATA 0xb8
+0000             66   _IPH1           DATA 0xb3
+0000             67   _IPL1           DATA 0xb2
+0000             68   _P0             DATA 0x80
+0000             69   _P1             DATA 0x90
+0000             70   _P2             DATA 0xa0
+0000             71   _P3             DATA 0xb0
+0000             72   _P4             DATA 0xc0
+0000             73   _P0M0           DATA 0xe6
+0000             74   _P0M1           DATA 0xe7
+0000             75   _P1M0           DATA 0xd6
+0000             76   _P1M1           DATA 0xd7
+0000             77   _P2M0           DATA 0xce
+0000             78   _P2M1           DATA 0xcf
+0000             79   _P3M0           DATA 0xc6
+0000             80   _P3M1           DATA 0xc7
+0000             81   _P4M0           DATA 0xbe
+0000             82   _P4M1           DATA 0xbf
+0000             83   _SCON           DATA 0x98
+0000             84   _SBUF           DATA 0x99
+0000             85   _SADEN          DATA 0xb9
+0000             86   _SADDR          DATA 0xa9
+0000             87   _BDRCON         DATA 0x9b
+0000             88   _BRL            DATA 0x9a
+0000             89   _TCON           DATA 0x88
+0000             90   _TMOD           DATA 0x89
+0000             91   _TCONB          DATA 0x91
+0000             92   _TL0            DATA 0x8a
+0000             93   _TH0            DATA 0x8c
+0000             94   _TL1            DATA 0x8b
+0000             95   _TH1            DATA 0x8d
+0000             96   _RL0            DATA 0xf2
+0000             97   _RH0            DATA 0xf4
+0000             98   _RL1            DATA 0xf3
+0000             99   _RH1            DATA 0xf5
+0000            100   _WDTRST         DATA 0xa6
+0000            101   _WDTPRG         DATA 0xa7
+0000            102   _T2CON          DATA 0xc8
+0000            103   _T2MOD          DATA 0xc9
+0000            104   _RCAP2H         DATA 0xcb
+0000            105   _RCAP2L         DATA 0xca
+0000            106   _TH2            DATA 0xcd
+0000            107   _TL2            DATA 0xcc
+0000            108   _SPCON          DATA 0xc3
+0000            109   _SPSTA          DATA 0xc4
+0000            110   _SPDAT          DATA 0xc5
+0000            111   _SSCON          DATA 0x93
+0000            112   _SSCS           DATA 0x94
+0000            113   _SSDAT          DATA 0x95
+0000            114   _SSADR          DATA 0x96
+0000            115   _KBLS           DATA 0x9c
+0000            116   _KBE            DATA 0x9d
+0000            117   _KBF            DATA 0x9e
+0000            118   _KBMOD          DATA 0x9f
+0000            119   _BMSEL          DATA 0x92
+0000            120   _FCON           DATA 0xd2
+0000            121   _EECON          DATA 0xd2
+0000            122   _ACSRA          DATA 0xa3
+0000            123   _ACSRB          DATA 0xab
+0000            124   _AREF           DATA 0xbd
+0000            125   _DADC           DATA 0xa4
+0000            126   _DADI           DATA 0xa5
+0000            127   _DADL           DATA 0xac
+0000            128   _DADH           DATA 0xad
+0000            129   _CCON           DATA 0xd8
+0000            130   _CMOD           DATA 0xd9
+0000            131   _CL             DATA 0xe9
+0000            132   _CH             DATA 0xf9
+0000            133   _CCAPM0         DATA 0xda
+0000            134   _CCAPM1         DATA 0xdb
+0000            135   _CCAPM2         DATA 0xdc
+0000            136   _CCAPM3         DATA 0xdd
+0000            137   _CCAPM4         DATA 0xde
+0000            138   _CCAP0H         DATA 0xfa
+0000            139   _CCAP1H         DATA 0xfb
+0000            140   _CCAP2H         DATA 0xfc
+0000            141   _CCAP3H         DATA 0xfd
+0000            142   _CCAP4H         DATA 0xfe
+0000            143   _CCAP0L         DATA 0xea
+0000            144   _CCAP1L         DATA 0xeb
+0000            145   _CCAP2L         DATA 0xec
+0000            146   _CCAP3L         DATA 0xed
+0000            147   _CCAP4L         DATA 0xee
+0000            148   ;--------------------------------------------------------
+0000            149   ; special function bits
+0000            150   ;--------------------------------------------------------
+0000            151   _ACC_0          BIT 0xe0
+0000            152   _ACC_1          BIT 0xe1
+0000            153   _ACC_2          BIT 0xe2
+0000            154   _ACC_3          BIT 0xe3
+0000            155   _ACC_4          BIT 0xe4
+0000            156   _ACC_5          BIT 0xe5
+0000            157   _ACC_6          BIT 0xe6
+0000            158   _ACC_7          BIT 0xe7
+0000            159   _B_0            BIT 0xf0
+0000            160   _B_1            BIT 0xf1
+0000            161   _B_2            BIT 0xf2
+0000            162   _B_3            BIT 0xf3
+0000            163   _B_4            BIT 0xf4
+0000            164   _B_5            BIT 0xf5
+0000            165   _B_6            BIT 0xf6
+0000            166   _B_7            BIT 0xf7
+0000            167   _P              BIT 0xd0
+0000            168   _F1             BIT 0xd1
+0000            169   _OV             BIT 0xd2
+0000            170   _RS0            BIT 0xd3
+0000            171   _RS1            BIT 0xd4
+0000            172   _F0             BIT 0xd5
+0000            173   _AC             BIT 0xd6
+0000            174   _CY             BIT 0xd7
+0000            175   _EX0            BIT 0xa8
+0000            176   _ET0            BIT 0xa9
+0000            177   _EX1            BIT 0xaa
+0000            178   _ET1            BIT 0xab
+0000            179   _ES             BIT 0xac
+0000            180   _ET2            BIT 0xad
+0000            181   _EC             BIT 0xae
+0000            182   _EA             BIT 0xaf
+0000            183   _PX0            BIT 0xb8
+0000            184   _PT0            BIT 0xb9
+0000            185   _PX1            BIT 0xba
+0000            186   _PT1            BIT 0xbb
+0000            187   _PS             BIT 0xbc
+0000            188   _PT2            BIT 0xbd
+0000            189   _IP0D           BIT 0xbf
+0000            190   _PPCL           BIT 0xbe
+0000            191   _PT2L           BIT 0xbd
+0000            192   _PLS            BIT 0xbc
+0000            193   _PT1L           BIT 0xbb
+0000            194   _PX1L           BIT 0xba
+0000            195   _PT0L           BIT 0xb9
+0000            196   _PX0L           BIT 0xb8
+0000            197   _P0_0           BIT 0x80
+0000            198   _P0_1           BIT 0x81
+0000            199   _P0_2           BIT 0x82
+0000            200   _P0_3           BIT 0x83
+0000            201   _P0_4           BIT 0x84
+0000            202   _P0_5           BIT 0x85
+0000            203   _P0_6           BIT 0x86
+0000            204   _P0_7           BIT 0x87
+0000            205   _P1_0           BIT 0x90
+0000            206   _P1_1           BIT 0x91
+0000            207   _P1_2           BIT 0x92
+0000            208   _P1_3           BIT 0x93
+0000            209   _P1_4           BIT 0x94
+0000            210   _P1_5           BIT 0x95
+0000            211   _P1_6           BIT 0x96
+0000            212   _P1_7           BIT 0x97
+0000            213   _P2_0           BIT 0xa0
+0000            214   _P2_1           BIT 0xa1
+0000            215   _P2_2           BIT 0xa2
+0000            216   _P2_3           BIT 0xa3
+0000            217   _P2_4           BIT 0xa4
+0000            218   _P2_5           BIT 0xa5
+0000            219   _P2_6           BIT 0xa6
+0000            220   _P2_7           BIT 0xa7
+0000            221   _P3_0           BIT 0xb0
+0000            222   _P3_1           BIT 0xb1
+0000            223   _P3_2           BIT 0xb2
+0000            224   _P3_3           BIT 0xb3
+0000            225   _P3_4           BIT 0xb4
+0000            226   _P3_5           BIT 0xb5
+0000            227   _P3_6           BIT 0xb6
+0000            228   _P3_7           BIT 0xb7
+0000            229   _RXD            BIT 0xb0
+0000            230   _TXD            BIT 0xb1
+0000            231   _INT0           BIT 0xb2
+0000            232   _INT1           BIT 0xb3
+0000            233   _T0             BIT 0xb4
+0000            234   _T1             BIT 0xb5
+0000            235   _WR             BIT 0xb6
+0000            236   _RD             BIT 0xb7
+0000            237   _P4_0           BIT 0xc0
+0000            238   _P4_1           BIT 0xc1
+0000            239   _P4_2           BIT 0xc2
+0000            240   _P4_3           BIT 0xc3
+0000            241   _P4_4           BIT 0xc4
+0000            242   _P4_5           BIT 0xc5
+0000            243   _P4_6           BIT 0xc6
+0000            244   _P4_7           BIT 0xc7
+0000            245   _RI             BIT 0x98
+0000            246   _TI             BIT 0x99
+0000            247   _RB8            BIT 0x9a
+0000            248   _TB8            BIT 0x9b
+0000            249   _REN            BIT 0x9c
+0000            250   _SM2            BIT 0x9d
+0000            251   _SM1            BIT 0x9e
+0000            252   _SM0            BIT 0x9f
+0000            253   _IT0            BIT 0x88
+0000            254   _IE0            BIT 0x89
+0000            255   _IT1            BIT 0x8a
+0000            256   _IE1            BIT 0x8b
+0000            257   _TR0            BIT 0x8c
+0000            258   _TF0            BIT 0x8d
+0000            259   _TR1            BIT 0x8e
+0000            260   _TF1            BIT 0x8f
+0000            261   _CP_RL2         BIT 0xc8
+0000            262   _C_T2           BIT 0xc9
+0000            263   _TR2            BIT 0xca
+0000            264   _EXEN2          BIT 0xcb
+0000            265   _TCLK           BIT 0xcc
+0000            266   _RCLK           BIT 0xcd
+0000            267   _EXF2           BIT 0xce
+0000            268   _TF2            BIT 0xcf
+0000            269   _CF             BIT 0xdf
+0000            270   _CR             BIT 0xde
+0000            271   _CCF4           BIT 0xdc
+0000            272   _CCF3           BIT 0xdb
+0000            273   _CCF2           BIT 0xda
+0000            274   _CCF1           BIT 0xd9
+0000            275   _CCF0           BIT 0xd8
+0000            276   ;--------------------------------------------------------
+0000            277   ; overlayable register banks
+0000            278   ;--------------------------------------------------------
+0000            279            rbank0 segment data overlay
+0000            280   ;--------------------------------------------------------
+0000            281   ; internal ram data
+0000            282   ;--------------------------------------------------------
+0000            283            rseg R_DSEG
+0000            284   ;--------------------------------------------------------
+0000            285   ; overlayable items in internal ram 
+0000            286   ;--------------------------------------------------------
+0000            287            rseg R_OSEG
+0000            288   ;--------------------------------------------------------
+0000            289   ; indirectly addressable internal ram data
+0000            290   ;--------------------------------------------------------
+0000            291            rseg R_ISEG
+0000            292   ;--------------------------------------------------------
+0000            293   ; absolute internal ram data
+0000            294   ;--------------------------------------------------------
+0000            295            DSEG
+0000            296   ;--------------------------------------------------------
+0000            297   ; bit data
+0000            298   ;--------------------------------------------------------
+0000            299            rseg R_BSEG
+0000            300   ;--------------------------------------------------------
+0000            301   ; paged external ram data
+0000            302   ;--------------------------------------------------------
+0000            303            rseg R_PSEG
+0000            304   ;--------------------------------------------------------
+0000            305   ; external ram data
+0000            306   ;--------------------------------------------------------
+0000            307            rseg R_XSEG
+0000            308   ;--------------------------------------------------------
+0000            309   ; absolute external ram data
+0000            310   ;--------------------------------------------------------
+0000            311            XSEG
+0000            312   ;--------------------------------------------------------
+0000            313   ; external initialized ram data
+0000            314   ;--------------------------------------------------------
+0000            315            rseg R_IXSEG
+0000            316            rseg R_HOME
+0000            317            rseg R_GSINIT
+0000            318            rseg R_CSEG
+0000            319   ;--------------------------------------------------------
+0000            320   ; Reset entry point and interrupt vectors
+0000            321   ;--------------------------------------------------------
+0000            322            CSEG at 0x0000
+0000 020100     323            ljmp    _crt0
+000B            324            CSEG at 0x000b
+000B 020100     325            ljmp    _wave_freq
+000E            326   ;--------------------------------------------------------
+000E            327   ; global & static initialisations
+000E            328   ;--------------------------------------------------------
+0000            329            rseg R_HOME
+0000            330            rseg R_GSINIT
+0000            331            rseg R_GSINIT
+0000            332   ;--------------------------------------------------------
+0000            333   ; data variables initialization
+0000            334   ;--------------------------------------------------------
+0000            335            rseg R_DINIT
+0000            336            ; The linker places a 'ret' at the end of segment R_DINIT.
+0000            337   ;--------------------------------------------------------
+0000            338   ; code
+0000            339   ;--------------------------------------------------------
+0000            340            rseg R_CSEG
+0000            341   ;------------------------------------------------------------
+0000            342   ;Allocation info for local variables in function '_c51_external_startup'
+0000            343   ;------------------------------------------------------------
+0000            344   ;------------------------------------------------------------
+0000            345   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:12: unsigned char _c51_external_startup(void)
+0000            346   ;        -----------------------------------------
+0000            347   ;         function _c51_external_startup
+0000            348   ;        -----------------------------------------
+0000            349   __c51_external_startup:
+0000            350            using   0
+0000            351   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:15: P0M0=0;    P0M1=0;
+0000 75E600     352            mov     _P0M0,#0x00
+0003 75E700     353            mov     _P0M1,#0x00
+0006            354   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:16: P1M0=0;    P1M1=0;
+0006 75D600     355            mov     _P1M0,#0x00
+0009 75D700     356            mov     _P1M1,#0x00
+000C            357   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:17: P2M0=0;    P2M1=0;
+000C 75CE00     358            mov     _P2M0,#0x00
+000F 75CF00     359            mov     _P2M1,#0x00
+0012            360   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:18: P3M0=0;    P3M1=0;
+0012 75C600     361            mov     _P3M0,#0x00
+0015 75C700     362            mov     _P3M1,#0x00
+0018            363   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:19: AUXR=0B_0001_0001; // 1152 bytes of internal XDATA, P4.4 is a general purpose I/O
+0018 758E11     364            mov     _AUXR,#0x11
+001B            365   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:20: P4M0=0;    P4M1=0;
+001B 75BE00     366            mov     _P4M0,#0x00
+001E 75BF00     367            mov     _P4M1,#0x00
+0021            368   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:23: PCON|=0x80;
+0021 438780     369            orl     _PCON,#0x80
+0024            370   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:24: SCON = 0x52;
+0024 759852     371            mov     _SCON,#0x52
+0027            372   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:25: BDRCON=0;
+0027 759B00     373            mov     _BDRCON,#0x00
+002A            374   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:26: BRL=BRG_VAL;
+002A 759AFA     375            mov     _BRL,#0xFA
+002D            376   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:27: BDRCON=BRR|TBCK|RBCK|SPD;
+002D 759B1E     377            mov     _BDRCON,#0x1E
+0030            378   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:30: TR0=0; // Stop timer 0
+0030 C28C       379            clr     _TR0
+0032            380   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:31: TMOD=0x01; // 16-bit timer
+0032 758901     381            mov     _TMOD,#0x01
+0035            382   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:36: TH0=RH0=TIMER0_RELOAD_VALUE/0x100;
+0035 75F4FF     383            mov     _RH0,#0xFF
+0038 758CFF     384            mov     _TH0,#0xFF
+003B            385   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:37: TL0=RL0=TIMER0_RELOAD_VALUE%0x100;
+003B 75F2CA     386            mov     _RL0,#0xCA
+003E 758ACA     387            mov     _TL0,#0xCA
+0041            388   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:38: TR0=1; // Start timer 0 (bit 4 in TCON)
+0041 D28C       389            setb    _TR0
+0043            390   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:39: ET0=1; // Enable timer 0 interrupt
+0043 D2A9       391            setb    _ET0
+0045            392   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:40: EA=1;  // Enable global interrupts
+0045 D2AF       393            setb    _EA
+0047            394   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:42: return 0;
+0047 758200     395            mov     dpl,#0x00
+004A 22         396            ret
+004B            397   ;------------------------------------------------------------
+004B            398   ;Allocation info for local variables in function 'waitBitTime'
+004B            399   ;------------------------------------------------------------
+004B            400   ;------------------------------------------------------------
+004B            401   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:46: void waitBitTime(void)
+004B            402   ;        -----------------------------------------
+004B            403   ;         function waitBitTime
+004B            404   ;        -----------------------------------------
+004B            405   _waitBitTime:
+004B            406   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:49: }
+004B 22         407            ret
+004C            408   ;------------------------------------------------------------
+004C            409   ;Allocation info for local variables in function 'sendCommand'
+004C            410   ;------------------------------------------------------------
+004C            411   ;val                       Allocated to registers r2 
+004C            412   ;i                         Allocated to registers r3 
+004C            413   ;------------------------------------------------------------
+004C            414   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:51: void sendCommand(unsigned char val)
+004C            415   ;        -----------------------------------------
+004C            416   ;         function sendCommand
+004C            417   ;        -----------------------------------------
+004C            418   _sendCommand:
+004C AA82       419            mov     r2,dpl
+004E            420   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:56: TR0=0;
+004E C28C       421            clr     _TR0
+0050            422   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:57: waitBitTime();
+0050 C002       423            push    ar2
+0052 120100     424            lcall   _waitBitTime
+0055 D002       425            pop     ar2
+0057            426   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:58: for(i = 0; i < 7; i++)
+0057 7B00       427            mov     r3,#0x00
+0059            428   L004004?:
+0059 BB07A8     429            cjne    r3,#0x07,L004014?
+005C            430   L004014?:
+005C 5001       431            jnc     L004007?
+005E            432   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:60: if(val&(0x01<<i))
+005E 8BF0       433            mov     b,r3
+0060 05F0       434            inc     b
+0062 7C01       435            mov     r4,#0x01
+0064 7D00       436            mov     r5,#0x00
+0066 8001       437            sjmp    L004017?
+0068            438   L004016?:
+0068 EC         439            mov     a,r4
+0069 2C         440            add     a,r4
+006A FC         441            mov     r4,a
+006B ED         442            mov     a,r5
+006C 33         443            rlc     a
+006D FD         444            mov     r5,a
+006E            445   L004017?:
+006E D5F0A8     446            djnz    b,L004016?
+0071 8A06       447            mov     ar6,r2
+0073 7F00       448            mov     r7,#0x00
+0075 EE         449            mov     a,r6
+0076 5204       450            anl     ar4,a
+0078 EF         451            mov     a,r7
+0079 5205       452            anl     ar5,a
+007B EC         453            mov     a,r4
+007C 4D         454            orl     a,r5
+007D 6001       455            jz      L004002?
+007F            456   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:63: TR0=1;
+007F D28C       457            setb    _TR0
+0081 8001       458            sjmp    L004003?
+0083            459   L004002?:
+0083            460   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:68: TR0=0;
+0083 C28C       461            clr     _TR0
+0085            462   L004003?:
+0085            463   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:70: waitBitTime();
+0085 C002       464            push    ar2
+0087 C003       465            push    ar3
+0089 120100     466            lcall   _waitBitTime
+008C D003       467            pop     ar3
+008E D002       468            pop     ar2
+0090            469   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:58: for(i = 0; i < 7; i++)
+0090 0B         470            inc     r3
+0091 8001       471            sjmp    L004004?
+0093            472   L004007?:
+0093            473   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:73: TR0=1;
+0093 D28C       474            setb    _TR0
+0095            475   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:74: waitBitTime();
+0095 120100     476            lcall   _waitBitTime
+0098            477   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:75: waitBitTime();
+0098 020100     478            ljmp    _waitBitTime
+009B            479   ;------------------------------------------------------------
+009B            480   ;Allocation info for local variables in function 'wave_freq'
+009B            481   ;------------------------------------------------------------
+009B            482   ;------------------------------------------------------------
+009B            483   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:82: void wave_freq (void) interrupt 1
+009B            484   ;        -----------------------------------------
+009B            485   ;         function wave_freq
+009B            486   ;        -----------------------------------------
+009B            487   _wave_freq:
+009B            488   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:84: if(P2_0==0)
+009B 20A068     489            jb      _P2_0,L005002?
+009E            490   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:86: P2_0=1;
+009E D2A0       491            setb    _P2_0
+00A0            492   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:87: P2_1=0;
+00A0 C2A1       493            clr     _P2_1
+00A2 8001       494            sjmp    L005004?
+00A4            495   L005002?:
+00A4            496   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:91: P2_1=1;
+00A4 D2A1       497            setb    _P2_1
+00A6            498   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:92: P2_0=0;
+00A6 C2A0       499            clr     _P2_0
+00A8            500   L005004?:
+00A8 32         501            reti
+00A9            502   ;        eliminated unneeded push/pop psw
+00A9            503   ;        eliminated unneeded push/pop dpl
+00A9            504   ;        eliminated unneeded push/pop dph
+00A9            505   ;        eliminated unneeded push/pop b
+00A9            506   ;        eliminated unneeded push/pop acc
+00A9            507   ;------------------------------------------------------------
+00A9            508   ;Allocation info for local variables in function 'main'
+00A9            509   ;------------------------------------------------------------
+00A9            510   ;------------------------------------------------------------
+00A9            511   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:98: void main (void)
+00A9            512   ;        -----------------------------------------
+00A9            513   ;         function main
+00A9            514   ;        -----------------------------------------
+00A9            515   _main:
+00A9            516   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:100: while(1)
+00A9            517   L006022?:
+00A9            518   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:103: if(P2_2 == 1)
+00A9 30A228     519            jnb     _P2_2,L006005?
+00AC            520   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:105: while(P2_2 == 1);
+00AC            521   L006001?:
+00AC 20A268     522            jb      _P2_2,L006001?
+00AF            523   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:106: sendCommand(0B00000001);
+00AF 758201     524            mov     dpl,#0x01
+00B2 120100     525            lcall   _sendCommand
+00B5            526   L006005?:
+00B5            527   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:108: if(P2_3 == 1)
+00B5 30A3A8     528            jnb     _P2_3,L006010?
+00B8            529   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:110: while(P2_3 == 1);
+00B8            530   L006006?:
+00B8 20A3E8     531            jb      _P2_3,L006006?
+00BB            532   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:111: sendCommand(0B00000010);
+00BB 758202     533            mov     dpl,#0x02
+00BE 120100     534            lcall   _sendCommand
+00C1            535   L006010?:
+00C1            536   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:113: if(P2_4 == 1)
+00C1 30A428     537            jnb     _P2_4,L006015?
+00C4            538   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:115: while(P2_4 == 1);
+00C4            539   L006011?:
+00C4 20A468     540            jb      _P2_4,L006011?
+00C7            541   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:116: sendCommand(0B00000011);
+00C7 758203     542            mov     dpl,#0x03
+00CA 120100     543            lcall   _sendCommand
+00CD            544   L006015?:
+00CD            545   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:118: if(P2_5 == 1)
+00CD 30A5E8     546            jnb     _P2_5,L006022?
+00D0            547   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:120: while(P2_5 == 1);
+00D0            548   L006016?:
+00D0 20A5A8     549            jb      _P2_5,L006016?
+00D3            550   ;        Z:\GHRepos\EECE281Project2\Transmitter.c:121: sendCommand(0B00000101);
+00D3 758205     551            mov     dpl,#0x05
+00D6 120100     552            lcall   _sendCommand
+00D9 8001       553            sjmp    L006022?
+00DB            554            rseg R_CSEG
+00DB            555   
+0000            556            rseg R_XINIT
+0000            557   
+0000            558            rseg R_CONST
+0000            559   
+000E            560            CSEG
+000E            561   
+000E            562   end

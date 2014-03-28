@@ -295,7 +295,7 @@ unsigned char recieveCommand( int min )
 	waitOneAndHalfBitTime();
 	for(i = 0; i < 3; i++)
 	{
-		v = SignalVoltage(); //May need to change to find peak voltage
+		v = signalVoltage(); //May need to change to find peak voltage
 		val |= (v>min)?(0x01<<i):0x00;
 		waitBitTime();
 	}
